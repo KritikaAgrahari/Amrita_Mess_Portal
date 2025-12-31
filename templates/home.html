@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Amrita Mess Feedback Portal{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="home-hero">
+    <div class="home-background">
+        <img src="{{ url_for('static', filename='amrita.jpg') }}" alt="Amrita University" class="bg-image" onerror="this.style.display='none'; this.parentElement.querySelector('.bg-overlay').style.background='linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)';">
+        <div class="bg-overlay"></div>
+    </div>
+    
+    <div class="home-content">
+        <h1 class="welcome-title">Welcome to the Amrita Mess Feedback Portal</h1>
+        <p class="welcome-subtitle">Your Voice Matters! Help Us Improve the Mess Experience</p>
+        <p class="welcome-description">Join hundreds of students in providing real-time feedback to enhance food quality and service</p>
+        
+        <div class="home-buttons">
+            {% if session.user_id %}
+            <a href="{{ url_for('feedback_page') }}" class="btn btn-primary">Submit Feedback</a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">View Live Stats</a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary">Login to Continue</a>
+            <a href="#features" class="btn btn-secondary">Learn More</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<section id="features" class="features-section">
+    <div class="container">
+        <h2 class="section-title">Key Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Live Statistics</h3>
+                <p>Real-time counters and interactive charts showing feedback distribution across all meals</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Instant Updates</h3>
+                <p>All feedback updates instantly across all devices using WebSocket technology</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🍽️</div>
+                <h3>Multi-Meal Feedback</h3>
+                <p>Provide separate feedback for Breakfast, Lunch, Snacks, Dinner, and Overall rating</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3>Data Analytics</h3>
+                <p>Visual charts and graphs help understand feedback trends and patterns</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3>Update Feedback</h3>
+                <p>Change your feedback once after submission if your opinion changes</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Community View</h3>
+                <p>See what other students are saying about the mess food quality</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Food Quality Definitions -->
+<section class="quality-section">
+    <div class="container">
+        <h2 class="section-title">Understanding Food Quality Ratings</h2>
+        <div class="quality-grid">
+            <div class="quality-card good">
+                <div class="quality-header">
+                    <span class="quality-icon">✅</span>
+                    <h3>GOOD</h3>
+                </div>
+                <div class="quality-content">
+                    <p><strong>Food Quality:</strong> Fresh, well-cooked, properly seasoned, and appetizing</p>
+                    <p><strong>Presentation:</strong> Neatly served, visually appealing, and properly portioned</p>
+                    <p><strong>Taste:</strong> Delicious, flavorful, and meets expectations</p>
+                    <p><strong>Service:</strong> Prompt, courteous, and efficient</p>
+                    <p><strong>Hygiene:</strong> Clean serving area, proper food handling, and sanitary conditions</p>
+                </div>
+            </div>
+            
+            <div class="quality-card average">
+                <div class="quality-header">
+                    <span class="quality-icon">⚠️</span>
+                    <h3>AVERAGE</h3>
+                </div>
+                <div class="quality-content">
+                    <p><strong>Food Quality:</strong> Acceptable but could be improved, some inconsistencies</p>
+                    <p><strong>Presentation:</strong> Adequate but not exceptional, basic serving</p>
+                    <p><strong>Taste:</strong> Satisfactory but lacks flavor or could be better</p>
+                    <p><strong>Service:</strong> Functional but may have minor delays or issues</p>
+                    <p><strong>Hygiene:</strong> Generally clean but room for improvement</p>
+                </div>
+            </div>
+            
+            <div class="quality-card poor">
+                <div class="quality-header">
+                    <span class="quality-icon">❌</span>
+                    <h3>POOR</h3>
+                </div>
+                <div class="quality-content">
+                    <p><strong>Food Quality:</strong> Below expectations, overcooked/undercooked, or stale</p>
+                    <p><strong>Presentation:</strong> Unappealing, messy, or improperly served</p>
+                    <p><strong>Taste:</strong> Unpalatable, bland, or unpleasant</p>
+                    <p><strong>Service:</strong> Slow, unprofessional, or inefficient</p>
+                    <p><strong>Hygiene:</strong> Concerns about cleanliness or food safety</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works-section">
+    <div class="container">
+        <h2 class="section-title">How It Works</h2>
+        <div class="steps-container">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Login</h3>
+                <p>Enter your full name, college ID, and email address to access the portal</p>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Submit Feedback</h3>
+                <p>Rate each meal (Breakfast, Lunch, Snacks, Dinner, Overall) as Good, Average, or Poor</p>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>View Results</h3>
+                <p>See live statistics, charts, and feedback from all students in real-time</p>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h3>Make Impact</h3>
+                <p>Your feedback helps improve mess services and food quality for everyone</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Benefits Section -->
+<section class="benefits-section">
+    <div class="container">
+        <h2 class="section-title">Why Your Feedback Matters</h2>
+        <div class="benefits-grid">
+            <div class="benefit-item">
+                <span class="benefit-icon">🎯</span>
+                <h4>Continuous Improvement</h4>
+                <p>Regular feedback helps identify areas for improvement in food quality and service</p>
+            </div>
+            <div class="benefit-item">
+                <span class="benefit-icon">📢</span>
+                <h4>Your Voice Heard</h4>
+                <p>Direct communication channel to express your opinions and concerns</p>
+            </div>
+            <div class="benefit-item">
+                <span class="benefit-icon">🤝</span>
+                <h4>Community Benefit</h4>
+                <p>Collective feedback leads to better mess experience for all students</p>
+            </div>
+            <div class="benefit-item">
+                <span class="benefit-icon">📊</span>
+                <h4>Data-Driven Decisions</h4>
+                <p>Real-time analytics help make informed decisions about menu and service improvements</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Instructions -->
+<section class="instructions-section">
+    <div class="container">
+        <h2 class="section-title">Quick Instructions</h2>
+        <div class="instructions-grid">
+            <div class="instruction-card">
+                <h3>📝 Getting Started</h3>
+                <ul>
+                    <li>Click "Login to Continue" button</li>
+                    <li>Enter your full name, college ID, and email</li>
+                    <li>Email must follow format: ch.sc.u4*@ch.students.amrita.edu</li>
+                    <li>New accounts are created automatically</li>
+                </ul>
+            </div>
+            <div class="instruction-card">
+                <h3>💬 Submitting Feedback</h3>
+                <ul>
+                    <li>Navigate to "Feedback" page after login</li>
+                    <li>Rate each meal separately (Breakfast, Lunch, Snacks, Dinner, Overall)</li>
+                    <li>Choose Good, Average, or Poor based on food quality</li>
+                    <li>You can update your feedback once after submission</li>
+                </ul>
+            </div>
+            <div class="instruction-card">
+                <h3>📊 Viewing Statistics</h3>
+                <ul>
+                    <li>Visit "Live Stats" dashboard to see real-time data</li>
+                    <li>View counters, charts, and feedback table</li>
+                    <li>Switch between different meals using tabs</li>
+                    <li>See feedback from all students in the table</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Instructions Modal -->
+<div id="instructionsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeInstructions()">&times;</span>
+        <h2>System Instructions</h2>
+        <div class="instructions-content">
+            <h3>How to Use the Mess Feedback Portal</h3>
+            <ul>
+                <li><strong>Login:</strong> Use your college ID and email (format: ch.sc.u4cse*@ch.students.amrita.edu)</li>
+                <li><strong>Submit Feedback:</strong> Provide feedback for Breakfast, Lunch, Snacks, Dinner, and Overall rating</li>
+                <li><strong>Live Updates:</strong> All feedback is updated in real-time for all users</li>
+                <li><strong>Change Feedback:</strong> You can update your feedback once after submission</li>
+                <li><strong>View Stats:</strong> Check live counters, charts, and feedback tables on the dashboard</li>
+            </ul>
+            <h3>Features</h3>
+            <ul>
+                <li>Real-time feedback submission</li>
+                <li>Live counters and statistics</li>
+                <li>Interactive charts and graphs</li>
+                <li>Feedback history tracking</li>
+                <li>Multi-meal feedback system</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+function showInstructions() {
+    document.getElementById('instructionsModal').style.display = 'block';
+}
+
+function closeInstructions() {
+    document.getElementById('instructionsModal').style.display = 'none';
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('instructionsModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}
+

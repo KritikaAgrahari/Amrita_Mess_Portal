@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Feedback - Amrita Mess Feedback Portal{% endblock %}
+
+{% block content %}
+<div class="feedback-container">
+    <h1>Mess Feedback Submission</h1>
+    <p class="page-subtitle">Provide your feedback for each meal. You can update your feedback once after submission.</p>
+    
+    <div class="meals-grid">
+        <div class="meal-card" data-meal="breakfast">
+            <h3>Breakfast</h3>
+            <div class="feedback-buttons">
+                <button class="feedback-btn good" onclick="submitFeedback('breakfast', 'good')">Good</button>
+                <button class="feedback-btn average" onclick="submitFeedback('breakfast', 'average')">Average</button>
+                <button class="feedback-btn poor" onclick="submitFeedback('breakfast', 'poor')">Poor</button>
+            </div>
+            <div class="current-feedback" id="breakfast-status"></div>
+        </div>
+        
+        <div class="meal-card" data-meal="lunch">
+            <h3>Lunch</h3>
+            <div class="feedback-buttons">
+                <button class="feedback-btn good" onclick="submitFeedback('lunch', 'good')">Good</button>
+                <button class="feedback-btn average" onclick="submitFeedback('lunch', 'average')">Average</button>
+                <button class="feedback-btn poor" onclick="submitFeedback('lunch', 'poor')">Poor</button>
+            </div>
+            <div class="current-feedback" id="lunch-status"></div>
+        </div>
+        
+        <div class="meal-card" data-meal="snacks">
+            <h3>Snacks</h3>
+            <div class="feedback-buttons">
+                <button class="feedback-btn good" onclick="submitFeedback('snacks', 'good')">Good</button>
+                <button class="feedback-btn average" onclick="submitFeedback('snacks', 'average')">Average</button>
+                <button class="feedback-btn poor" onclick="submitFeedback('snacks', 'poor')">Poor</button>
+            </div>
+            <div class="current-feedback" id="snacks-status"></div>
+        </div>
+        
+        <div class="meal-card" data-meal="dinner">
+            <h3>Dinner</h3>
+            <div class="feedback-buttons">
+                <button class="feedback-btn good" onclick="submitFeedback('dinner', 'good')">Good</button>
+                <button class="feedback-btn average" onclick="submitFeedback('dinner', 'average')">Average</button>
+                <button class="feedback-btn poor" onclick="submitFeedback('dinner', 'poor')">Poor</button>
+            </div>
+            <div class="current-feedback" id="dinner-status"></div>
+        </div>
+        
+        <div class="meal-card" data-meal="overall">
+            <h3>Overall Rating</h3>
+            <div class="feedback-buttons">
+                <button class="feedback-btn good" onclick="submitFeedback('overall', 'good')">Good</button>
+                <button class="feedback-btn average" onclick="submitFeedback('overall', 'average')">Average</button>
+                <button class="feedback-btn poor" onclick="submitFeedback('overall', 'poor')">Poor</button>
+            </div>
+            <div class="current-feedback" id="overall-status"></div>
+        </div>
+    </div>
+    
+    <div id="feedback-message" class="message"></div>
+</div>
+
+<script>
+let userFeedback = {};
+
+// Load user's current feedback
+async function loadUserFeedback() {
+    try {
+        const response = await fetch('/api/get_user_feedback', {
+            credentials: 'same-origin'  // Include cookies/session
+        });
+        
+        // Check response status first
+        if (response.status === 401) {
+            console.log('Not authenticated, redirecting to login');
+            window.location.href = '/login';
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Expected JSON but got:', text.substring(0, 200));
+            // If it looks like HTML (redirect page), redirect to login
+            if (text.trim().startsWith('<')) {
+                window.location.href = '/login';
+                return;
+            }
+            throw new Error('Invalid response format');
+        }
+        
+        const data = await response.json();
+        
+        // Check if it's an error response
+        if (data.error) {
+            console.error('API error:', data.error);
+            if (data.error.includes('authenticated') || data.error.includes('Not authenticated')) {
+                window.location.href = '/login';
+                return;
+            }
+        }
+        
+        userFeedback = data;
+        updateFeedbackStatus();
+    } catch (error) {
+        console.error('Error loading feedback:', error);
+        // If JSON parse error, might be HTML redirect
+        if (error.message.includes('JSON') || error.message.includes('Unexpected token')) {
+            console.log('JSON parse error, likely not authenticated');
+            window.location.href = '/login';
+        }
+    }
+}
+
+function updateFeedbackStatus() {
+    const meals = ['breakfast', 'lunch', 'snacks', 'dinner', 'overall'];
+    meals.forEach(meal => {
+        const statusDiv = document.getElementById(`${meal}-status`);
+        if (userFeedback[meal]) {
+            statusDiv.innerHTML = `<span class="status-badge ${userFeedback[meal]}">Current: ${userFeedback[meal].charAt(0).toUpperCase() + userFeedback[meal].slice(1)}</span>`;
+        } else {
+            statusDiv.innerHTML = '<span class="status-badge">Not submitted</span>';
+        }
+    });
+}
+
+async function submitFeedback(meal, feedbackType) {
+    const messageDiv = document.getElementById('feedback-message');
+    messageDiv.innerHTML = '<div class="loading">Submitting feedback...</div>';
+    
+    try {
+        const response = await fetch('/api/submit_feedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',  // Include cookies/session
+            body: JSON.stringify({
+                meal: meal,
+                feedback_type: feedbackType
+            })
+        });
+        
+        // Check response status first
+        if (response.status === 401) {
+            console.log('Not authenticated, redirecting to login');
+            window.location.href = '/login';
+            return;
+        }
+        
+        if (!response.ok) {
+            const text = await response.text();
+            console.error('HTTP error:', response.status, text.substring(0, 200));
+            messageDiv.innerHTML = `<div class="error-message">Server error (${response.status}). Please try again.</div>`;
+            return;
+        }
+        
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Expected JSON but got:', text.substring(0, 200));
+            // If it looks like HTML (redirect page), redirect to login
+            if (text.trim().startsWith('<')) {
+                window.location.href = '/login';
+                return;
+            }
+            messageDiv.innerHTML = '<div class="error-message">Invalid server response. Please try again.</div>';
+            return;
+        }
+        
+        let data;
+        try {
+            data = await response.json();
+        } catch (jsonError) {
+            const text = await response.text();
+            console.error('JSON parse error:', jsonError, 'Response:', text.substring(0, 200));
+            if (text.trim().startsWith('<')) {
+                window.location.href = '/login';
+                return;
+            }
+            messageDiv.innerHTML = '<div class="error-message">Error parsing response. Please try again.</div>';
+            return;
+        }
+        
+        // Check if it's an error response
+        if (data.error) {
+            messageDiv.innerHTML = `<div class="error-message">${data.error}</div>`;
+            if (data.error.includes('authenticated') || data.error.includes('Not authenticated')) {
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+            }
+            return;
+        }
+        
+        if (data.success) {
+            messageDiv.innerHTML = `<div class="success-message">${data.message}</div>`;
+            userFeedback[meal] = feedbackType;
+            updateFeedbackStatus();
+            
+            // Clear message after 3 seconds
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        } else {
+            messageDiv.innerHTML = `<div class="error-message">${data.error || 'Failed to submit feedback'}</div>`;
+        }
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+        // Check if it's a JSON parse error
+        if (error.message.includes('JSON') || error.message.includes('Unexpected token')) {
+            console.log('JSON parse error, likely not authenticated');
+            window.location.href = '/login';
+            return;
+        }
+        messageDiv.innerHTML = `<div class="error-message">Error: ${error.message}. Please check your connection and try again.</div>`;
+    }
+}
+
+// Load feedback on page load
+loadUserFeedback();
+</script>
+{% endblock %}
+

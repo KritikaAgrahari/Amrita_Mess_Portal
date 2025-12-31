@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Amrita Mess Feedback Portal{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('home') }}" class="nav-logo">
+                <img src="{{ url_for('static', filename='amrita_logo.png') }}" alt="Amrita Logo" class="logo-img" onerror="this.style.display='none'">
+                <span>Amrita Mess Portal</span>
+            </a>
+            <div class="nav-links">
+                <a href="{{ url_for('home') }}">Home</a>
+                {% if session and session.get('user_id') %}
+                <a href="{{ url_for('feedback_page') }}">Feedback</a>
+                <a href="{{ url_for('dashboard') }}">Live Stats</a>
+                <div class="nav-profile">
+                    <span>{{ session.get('name', 'User')|upper }}</span>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+                </div>
+                {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 Amrita Vishwa Vidyapeetham - Mess Feedback System</p>
+    </footer>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
+

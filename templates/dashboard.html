@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Live Stats - Amrita Mess Feedback Portal{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1>Live Mess Feedback Statistics</h1>
+    <p class="page-subtitle">View real-time feedback from all users. Submit your feedback on the Feedback page.</p>
+    
+    <div class="stats-header">
+        <div class="active-users">
+            <span class="label">Active Users:</span>
+            <span id="active-users-count" class="count">0</span>
+        </div>
+    </div>
+    
+    <div class="meals-tabs">
+        <button class="tab-btn active" onclick="showMeal('breakfast')">Breakfast</button>
+        <button class="tab-btn" onclick="showMeal('lunch')">Lunch</button>
+        <button class="tab-btn" onclick="showMeal('snacks')">Snacks</button>
+        <button class="tab-btn" onclick="showMeal('dinner')">Dinner</button>
+        <button class="tab-btn" onclick="showMeal('overall')">Overall</button>
+    </div>
+    
+    <div class="dashboard-content">
+        <div class="stats-section">
+            <div class="counters-grid">
+                <div class="counter-card good">
+                    <h3>Good</h3>
+                    <div class="counter-value" id="good-counter">0</div>
+                </div>
+                <div class="counter-card average">
+                    <h3>Average</h3>
+                    <div class="counter-value" id="average-counter">0</div>
+                </div>
+                <div class="counter-card poor">
+                    <h3>Poor</h3>
+                    <div class="counter-value" id="poor-counter">0</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="feedbackChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="table-section">
+            <h2>Live Feedback Table</h2>
+            <div class="table-container">
+                <table id="feedback-table">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>College ID</th>
+                            <th>Email</th>
+                            <th>Meal</th>
+                            <th>Feedback</th>
+                            <th>Submitted At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feedback-table-body">
+                        <tr>
+                            <td colspan="6" class="loading">Loading feedback data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentMeal = 'breakfast';
+let chart = null;
+let socket = null;
+
+// Initialize WebSocket connection
+function initWebSocket() {
+    socket = io();
+    
+    socket.on('connect', function() {
+        console.log('Connected to live feed');
+    });
+    
+    socket.on('counters_update', function(data) {
+        updateCounters(data);
+    });
+    
+    socket.on('feedback_update', function(data) {
+        updateCounters(data.counters);
+        loadFeedbackTable();
+    });
+}
+
+// Load counters from API
+async function loadCounters() {
+    try {
+        const response = await fetch('/api/get_counters');
+        const data = await response.json();
+        updateCounters(data);
+    } catch (error) {
+        console.error('Error loading counters:', error);
+    }
+}
+
+// Update counters display
+function updateCounters(counters) {
+    if (!counters[currentMeal]) return;
+    
+    const goodCount = counters[currentMeal].good || 0;
+    const avgCount = counters[currentMeal].average || 0;
+    const poorCount = counters[currentMeal].poor || 0;
+    
+    document.getElementById('good-counter').textContent = goodCount;
+    document.getElementById('average-counter').textContent = avgCount;
+    document.getElementById('poor-counter').textContent = poorCount;
+    
+    updateChart(goodCount, avgCount, poorCount);
+}
+
+// Update chart
+function updateChart(good, average, poor) {
+    const ctx = document.getElementById('feedbackChart').getContext('2d');
+    
+    if (chart) {
+        chart.destroy();
+    }
+    
+    chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Good', 'Average', 'Poor'],
+            datasets: [{
+                label: `${currentMeal.charAt(0).toUpperCase() + currentMeal.slice(1)} Feedback`,
+                data: [good, average, poor],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(255, 99, 132, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+// Show specific meal
+function showMeal(meal) {
+    currentMeal = meal;
+    
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Reload counters for selected meal
+    loadCounters();
+}
+
+// Load feedback table
+async function loadFeedbackTable() {
+    try {
+        const response = await fetch('/api/get_feedback_table');
+        const data = await response.json();
+        
+        const tbody = document.getElementById('feedback-table-body');
+        tbody.innerHTML = '';
+        
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="no-data">No feedback submitted yet</td></tr>';
+            return;
+        }
+        
+        data.forEach(feedback => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${feedback.name.toUpperCase()}</td>
+                <td>${feedback.college_id.toUpperCase()}</td>
+                <td>${feedback.email.toUpperCase()}</td>
+                <td>${feedback.meal.toUpperCase()}</td>
+                <td><span class="feedback-badge ${feedback.feedback_type}">${feedback.feedback_type.toUpperCase()}</span></td>
+                <td>${new Date(feedback.updated_at).toLocaleString()}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error loading feedback table:', error);
+        document.getElementById('feedback-table-body').innerHTML = 
+            '<tr><td colspan="6" class="error">Error loading data</td></tr>';
+    }
+}
+
+// Load active users count
+async function loadActiveUsers() {
+    try {
+        const response = await fetch('/api/get_active_users');
+        const data = await response.json();
+        document.getElementById('active-users-count').textContent = data.active_users || 0;
+    } catch (error) {
+        console.error('Error loading active users:', error);
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initWebSocket();
+    loadCounters();
+    loadFeedbackTable();
+    loadActiveUsers();
+    
+    // Refresh data every 5 seconds as backup
+    setInterval(() => {
+        loadCounters();
+        loadFeedbackTable();
+        loadActiveUsers();
+    }, 5000);
+});
+</script>
+{% endblock %}
+

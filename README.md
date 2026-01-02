@@ -185,5 +185,5 @@ The shared memory segment stores counters for all meals and feedback types:
 
 ## License
 
-This project is created for academic purposes as part of the Data Structures course at Amrita Vishwa Vidyapeetham.
+This project is created for academic purposes as part of the Distributed System course at Amrita Vishwa Vidyapeetham.
 
